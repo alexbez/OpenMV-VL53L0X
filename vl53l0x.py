@@ -1,9 +1,17 @@
+# forked from ramithuh
+# changed pins for SCL and SDA lines for ESP32
+# removed 'pyb' module references
+# changed class constructor
+
 from micropython import const
 import ustruct
 import time
 import utime
-import pyb
-from machine import I2C
+from machine import Pin, I2C
+
+SCL_PIN = const(22)
+SDA_PIN = const(21)
+VL53L0X_ADDR = const(0x29)
 
 _IO_TIMEOUT = 1000
 _SYSRANGE_START = const(0x00)
@@ -29,7 +37,7 @@ class TimeoutError(RuntimeError):
 
 
 class VL53L0X:
-    def __init__(self, i2c, address=0x29):
+    def __init__(self, i2c, address=VL53L0X_ADDR):
         self.i2c = i2c
         self.address = address
         self.init()
@@ -338,15 +346,3 @@ class VL53L0X:
         value = self._register(_RESULT_RANGE_STATUS + 10, struct='>H')
         self._register(_INTERRUPT_CLEAR, 0x01)
         return value
-
-i2c = I2C(sda=pyb.Pin('P5'), scl=pyb.Pin('P4'), freq=400000)
-mysensor=VL53L0X(i2c)
-
-mysensor.start()
-
-clock = time.clock()
-clock.tick()
-
-for i in range(0,100):
-    print(mysensor.read(),clock.avg())
-    clock.tick()
